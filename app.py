@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, make_response
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from models import *
@@ -63,16 +63,6 @@ def edit_user(user_id):
 def delete_user(user_id):
     return ''
 
-# @app.route('/unprotected')
-# def unprotected():
-#     return jsonify({'message': 'Anyone can see this page'})
-#
-#
-# @app.route('/protected')
-# @token_required
-# def protected():
-#     return jsonify({'message': 'This page can see only authenticated users'})
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -90,7 +80,7 @@ def login():
 
         return jsonify({'token': token.decode('UTF-8')})
 
-    return make_response('Could verify!', 401, {'WWW-Authenticate': 'Basic realm="Login Required'})
+    return jsonify({'message': 'No matches'}), 401
 
 
 @app.route('/invoices', methods=['GET'])
