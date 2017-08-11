@@ -73,11 +73,12 @@ def login():
 
             return jsonify({'token': token.decode('UTF-8')})
 
-    else:
         return jsonify({'message': 'User not registered'}), 404
 
     return jsonify({'message': 'No matches'}), 401
 
+
+# Customer routes
 
 @app.route('/customers', methods=['GET'])
 @token_required
@@ -112,10 +113,29 @@ def create_customer():
         return jsonify({'message': 'All fields required!'}), 400
 
 
-@app.route('/customers/<string:customer_id>', methods=['PUT'])
+@app.route('/customers', methods=['PUT'])
 @token_required
-def update_customer(customer_id):
-    return ''
+def update_customer():
+    data = request.get_json()
+
+    if data and data.get('public_id'):
+        customer = models.Customer.query.filter_by(public_id=data['public_id']).first()
+
+        if data.get('name'):
+            customer.name = data['name']
+
+        if data.get('address'):
+            customer.address = data['address']
+
+        if data.get('phone'):
+            customer.phone = data['phone']
+
+        db.session.commit()
+
+        return jsonify({'message': 'Customers changes saved!'}), 200
+
+    else:
+        return jsonify({'message': 'Request body is empty or no public_id passed'}), 502
 
 
 @app.route('/customers/<string:customer_id>', methods=['DELETE'])
@@ -127,10 +147,80 @@ def delete_customer(customer_id):
     customer = models.Customer.query.filter_by(public_id=customer_id).first()
 
     if customer is None:
-        return jsonify({'message': 'Customer was deleted'})
+        return jsonify({'message': 'Customer was deleted'}), 200
 
     return jsonify({'message': 'Customer is not deleted'}), 500
 
+
+# Product routes
+
+@app.route('/products', methods=['GET'])
+@token_required
+def fetch_all_products():
+    products = models.Product.query.all()
+
+    if products:
+        return jsonify([i.serialize() for i in products])
+
+    return jsonify({'message': 'Can\'t get products, DB error!'}), 500
+
+
+@app.route('/products', methods=['POST'])
+@token_required
+def create_product():
+    data = request.get_json()
+
+    if data and data.get('name') and data.get('price'):
+        product = models.Product(public_id=str(uuid.uuid4()), name=data['name'], price=data['price'])
+
+        db.session.add(product)
+        db.session.commit()
+
+        return jsonify({'message': 'Product successfully created!', 'product': product.serialize()}), 201
+
+    return jsonify({'message': 'All parameter are required!'}), 502
+
+
+@app.route('/products', methods=['PUT'])
+@token_required
+def update_product():
+    data = request.get_json()
+
+    if data and data.get('public_id'):
+        product = models.Product.query.filter_by(public_id=data['public_id']).first()
+
+        if product:
+            if data.get('name'):
+                product.name = data['name']
+
+            if data.get('price'):
+                product.price = data['price']
+
+            db.session.commit()
+        else:
+            return jsonify({'message': 'Product not found in DB!'}), 404
+
+        return jsonify({'message': 'Product successfully updated'}), 200
+
+    return jsonify({'message': 'public_id is required parameter!'}), 502
+
+
+@app.route('/products/<string:product_id>', methods=['DELETE'])
+@token_required
+def delete_product(product_id):
+    if product_id:
+        db.session.query(models.Product).filter(models.Product.public_id == product_id).delete()
+        db.session.commit()
+
+        if models.Product.query.filter_by(public_id=product_id).first() is None:
+            return jsonify({'message': 'Product was successfully deleted!'}), 200
+
+        return jsonify({'message': 'Product not deleted, DB error!'}), 500
+
+    return jsonify({'message': 'product_id parameter is required!'}), 502
+
+
+# Invoice routes
 
 @app.route('/invoices', methods=['GET'])
 @token_required
@@ -139,12 +229,35 @@ def fetch_all_invoices():
     return jsonify([e.serialize() for e in invoices])
 
 
+@app.route('/invoices/<string:invoice_id>', methods=['GET'])
+@token_required
+def fetch_invoice(invoice_id):
+    invoice = models.Invoice.query.filter_by(public_id=invoice_id).first()
+
+    return jsonify({'invoice': invoice.serialize()})
+
+
 @app.route('/invoices', methods=['POST'])
+@token_required
 def create_invoice():
     data = request.get_json()
+    invoice = models.Invoice(public_id=str(uuid.uuid4()))
 
-    return data
+    return ''
 
+
+@app.route('/invoices', methods=['PUT'])
+@token_required
+def update_invoice():
+    data = request.get_json()
+
+    return ''
+
+
+@app.route('/invoices/<string:invoice_id>', methods=['DELETE'])
+@token_required
+def delete_invoice(invoice_id):
+    return ''
 
 
 if __name__ == '__main__':
