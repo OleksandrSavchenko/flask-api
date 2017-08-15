@@ -241,9 +241,33 @@ def fetch_invoice(invoice_id):
 @token_required
 def create_invoice():
     data = request.get_json()
-    invoice = models.Invoice(public_id=str(uuid.uuid4()))
 
-    return ''
+    if data and data.get('customer_id') and data.get('discount') and data.get('total'):
+        invoice = models.Invoice(
+            public_id=str(uuid.uuid4()),
+            customer_id=data['customer_id'],
+            discount=data['discount'],
+            total=data['total']
+        )
+        db.session.add(invoice)
+        db.session.commit()
+
+        for item in data['invoice_items']:
+            if item and item['product_id'] and item['quantity']:
+                item = models.InvoiceItem(
+                    public_id=str(uuid.uuid4()),
+                    product_id=item['product_id'],
+                    invoice=invoice,
+                    quantity=item['quantity']
+                )
+                db.session.add(item)
+                db.session.commit()
+            else:
+                return jsonify({'message': 'Product and quantity for each invoice item is required!'}), 502
+
+        return jsonify({'message': 'Invoice created successfully!'}), 201
+
+    return jsonify({'message': 'All fields for invoice is required!'}), 502
 
 
 @app.route('/invoices', methods=['PUT'])
@@ -251,7 +275,19 @@ def create_invoice():
 def update_invoice():
     data = request.get_json()
 
-    return ''
+    if data and data.get('public_id'):
+        invoice = models.Invoice.query.filter_by(public_id=data['public_id'])
+
+        if data.get('customer_id'):
+            invoice.customer_id = data['customer_id']
+
+        if data.get('discount'):
+            invoice.discount = data['discount']
+
+        if data.get('total'):
+            invoice.total = data['total']
+
+    return jsonify({'message': 'public_id is required!'}), 502
 
 
 @app.route('/invoices/<string:invoice_id>', methods=['DELETE'])

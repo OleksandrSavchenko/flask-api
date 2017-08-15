@@ -4,9 +4,9 @@ from app import db
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String, unique=True)
-    name = db.Column(db.String(50))
+    name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(80))
+    password = db.Column(db.String(80), nullable=False)
 
     def serialize(self):
         return {
@@ -37,7 +37,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String, unique=True)
     name = db.Column(db.String(120), nullable=False)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
 
     def serialize(self):
         return {
@@ -52,14 +52,14 @@ class Invoice(db.Model):
     public_id = db.Column(db.String, unique=True)
     customer_id = db.Column(db.String, nullable=False)
     invoice_items = db.relationship('InvoiceItem', backref='invoice', lazy='dynamic')
-    discount = db.Column(db.Integer, nullable=False)
-    total = db.Column(db.Integer, nullable=False)
+    discount = db.Column(db.Float, nullable=False)
+    total = db.Column(db.Float, nullable=False)
 
     def serialize(self):
         return {
             'public_id': self.public_id,
             'customer_id': self.customer_id,
-            'invoice_items': self.invoice_items,
+            'invoice_items': [i.serialize() for i in self.invoice_items],
             'discount': self.discount,
             'total': self.total
         }
