@@ -51,7 +51,7 @@ class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     public_id = db.Column(db.String, unique=True)
     customer_id = db.Column(db.String, nullable=False)
-    invoice_items = db.relationship('InvoiceItem', backref='invoice', lazy='dynamic')
+    invoice_items = db.relationship('InvoiceItem', backref='invoice', lazy='dynamic', cascade="all, delete-orphan")
     discount = db.Column(db.Float, nullable=False)
     total = db.Column(db.Float, nullable=False)
 
