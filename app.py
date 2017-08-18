@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 app.config['SECRET_KEY'] = '1fdswf23fdsaf4t234gfqew'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:80989691699@localhost/invoice-app'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sod2664@localhost/invoice-app'
 db = SQLAlchemy(app)
 
 
@@ -159,7 +159,7 @@ def delete_customer(customer_id):
 def fetch_all_products():
     products = models.Product.query.all()
 
-    if products:
+    if products is not None:
         return jsonify([i.serialize() for i in products])
 
     return jsonify({'message': 'Can\'t get products, DB error!'}), 500
