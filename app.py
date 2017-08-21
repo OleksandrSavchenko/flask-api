@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 import models
@@ -34,7 +34,7 @@ def token_required(f):
     return decorated
 
 
-@app.route('/user', methods=['POST'])
+@app.route('/api/user', methods=['POST'])
 def create_user():
     data = request.get_json()
 
@@ -55,7 +55,7 @@ def create_user():
     return jsonify({'message': 'New user created!', 'token': token.decode('UTF-8')})
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     user = models.User.query.filter_by(email=data['email']).first()
@@ -78,16 +78,32 @@ def login():
     return jsonify({'message': 'No matches'}), 401
 
 
+@app.route('/<path:path>', methods=['GET'])
+def index(path):
+    if path.find('api') is not 0:
+        return send_from_directory('client', 'index.html')
+
+
+@app.route('/js/<js_file>', methods=['GET'])
+def serve_js(js_file):
+    return send_from_directory('client/js', js_file)
+
+
+@app.route('/css/<css_file>', methods=['GET'])
+def serve_css(css_file):
+    return send_from_directory('client/css', css_file)
+
+
 # Customer routes
 
-@app.route('/customers', methods=['GET'])
+@app.route('/api/customers', methods=['GET'])
 @token_required
 def fetch_all_customers():
     customers = models.Customer.query.all()
     return jsonify([e.serialize() for e in customers])
 
 
-@app.route('/customers', methods=['POST'])
+@app.route('/api/customers', methods=['POST'])
 @token_required
 def create_customer():
     data = request.get_json()
@@ -113,7 +129,7 @@ def create_customer():
         return jsonify({'message': 'All fields required!'}), 400
 
 
-@app.route('/customers', methods=['PUT'])
+@app.route('/api/customers', methods=['PUT'])
 @token_required
 def update_customer():
     data = request.get_json()
@@ -138,7 +154,7 @@ def update_customer():
         return jsonify({'message': 'Request body is empty or no public_id passed'}), 502
 
 
-@app.route('/customers/<string:customer_id>', methods=['DELETE'])
+@app.route('/api/customers/<string:customer_id>', methods=['DELETE'])
 @token_required
 def delete_customer(customer_id):
     db.session.query(models.Customer).filter(models.Customer.public_id == customer_id).delete()
@@ -154,7 +170,7 @@ def delete_customer(customer_id):
 
 # Product routes
 
-@app.route('/products', methods=['GET'])
+@app.route('/api/products', methods=['GET'])
 @token_required
 def fetch_all_products():
     products = models.Product.query.all()
@@ -165,7 +181,7 @@ def fetch_all_products():
     return jsonify({'message': 'Can\'t get products, DB error!'}), 500
 
 
-@app.route('/products', methods=['POST'])
+@app.route('/api/products', methods=['POST'])
 @token_required
 def create_product():
     data = request.get_json()
@@ -181,7 +197,7 @@ def create_product():
     return jsonify({'message': 'All parameter are required!'}), 502
 
 
-@app.route('/products', methods=['PUT'])
+@app.route('/api/products', methods=['PUT'])
 @token_required
 def update_product():
     data = request.get_json()
@@ -205,7 +221,7 @@ def update_product():
     return jsonify({'message': 'public_id is required parameter!'}), 502
 
 
-@app.route('/products/<string:product_id>', methods=['DELETE'])
+@app.route('/api/products/<string:product_id>', methods=['DELETE'])
 @token_required
 def delete_product(product_id):
     if product_id:
@@ -222,14 +238,14 @@ def delete_product(product_id):
 
 # Invoice routes
 
-@app.route('/invoices', methods=['GET'])
+@app.route('/api/invoices', methods=['GET'])
 @token_required
 def fetch_all_invoices():
     invoices = models.Invoice.query.all()
     return jsonify([e.serialize() for e in invoices])
 
 
-@app.route('/invoices/<string:invoice_id>', methods=['GET'])
+@app.route('/api/invoices/<string:invoice_id>', methods=['GET'])
 @token_required
 def fetch_invoice(invoice_id):
     invoice = models.Invoice.query.filter_by(public_id=invoice_id).first()
@@ -237,7 +253,7 @@ def fetch_invoice(invoice_id):
     return jsonify({'invoice': invoice.serialize()})
 
 
-@app.route('/invoices', methods=['POST'])
+@app.route('/api/invoices', methods=['POST'])
 @token_required
 def create_invoice():
     data = request.get_json()
@@ -273,7 +289,7 @@ def create_invoice():
     return jsonify({'message': 'All fields for invoice is required!'}), 503
 
 
-@app.route('/invoices', methods=['PUT'])
+@app.route('/api/invoices', methods=['PUT'])
 @token_required
 def update_invoice():
     data = request.get_json()
@@ -293,7 +309,7 @@ def update_invoice():
     return jsonify({'message': 'public_id is required!'}), 502
 
 
-@app.route('/invoices/<string:invoice_id>', methods=['DELETE'])
+@app.route('/api/invoices/<string:invoice_id>', methods=['DELETE'])
 @token_required
 def delete_invoice(invoice_id):
     invoice = db.session.query(models.Invoice).filter(models.Invoice.public_id == invoice_id)
