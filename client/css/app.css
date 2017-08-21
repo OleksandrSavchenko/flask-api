@@ -1,0 +1,84 @@
+html,
+body {
+    height: 100%;
+}
+body {
+    margin: 0;
+}
+
+#app {
+    height: 100%;
+}
+
+.wrapper {
+    height: 100%;
+    position: relative;
+    padding-bottom: 50px;
+}
+
+.container-md {
+    width: 700px;
+    margin: 0 auto;
+}
+
+.btn-save {
+    width: 100%;
+}
+
+.input-number {
+    float: right;
+    width: 80px;
+}
+
+/* Loading container styles */
+
+.container-loading {
+    display: none;
+    position: absolute;
+    top: 52px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 9999;
+    margin: auto;
+    background: #ffffff;
+}
+.container-loading.active {
+    display: block;
+}
+.loading-block {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    width: 76px;
+    height: 15px;
+}
+.dot {
+    background: #428bca;
+    width: 15px;
+    height: 15px;
+    border: 2px solid white;
+    border-radius: 50%;
+    float: left;
+    margin: 0 5px;
+    transform: scale(0);
+    animation: fx 1000ms ease infinite 0ms;
+}
+.dot:nth-child(2) {
+    animation: fx 1000ms ease infinite 300ms;
+}
+.dot:nth-child(3) {
+    animation: fx 1000ms ease infinite 600ms;
+}
+@keyframes fx {
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
