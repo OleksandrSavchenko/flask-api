@@ -1,6 +1,7 @@
-import models
-from app import db
 import uuid
+
+import models
+from __init__ import db
 
 # db.create_all()
 #
